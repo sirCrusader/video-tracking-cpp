@@ -11,6 +11,65 @@ const std::string RIGHT = "right";
 const std::string UP = "up";
 const std::string DOWN = "down";
 
+std::pair<std::string, std::string> computeDirection(double x, double y)
+{
+  std::string xDir;
+  std::string yDir;
+
+  if (x < CENTER)
+  {
+    xDir = LEFT;
+  }
+  else if (x > CENTER)
+  {
+    xDir = RIGHT;
+  }
+  if (y < CENTER)
+  {
+    yDir = UP;
+  }
+  else if (y > CENTER)
+  {
+    yDir = DOWN;
+  }
+
+  return std::make_pair(xDir, yDir);
+}
+
+std::pair<double, double> computeAcceleration(const std::string &xDir, const std::string &yDir, double x, double y)
+{
+  double xAccel = 0.0;
+  double yAccel = 0.0;
+  if (xDir == LEFT)
+  {
+    xAccel = (CENTER - x);
+  }
+  else if (xDir == RIGHT)
+  {
+    xAccel = (x - CENTER);
+  }
+  if (yDir == UP)
+  {
+    yAccel = (CENTER - y);
+  }
+  else if (yDir == DOWN)
+  {
+    yAccel = (y - CENTER);
+  }
+
+  return std::make_pair(xAccel * 100 * 2, yAccel * 100 * 2);
+}
+
+
+void gimbalNavigator(double x, double y, double capWidth, double capHeight)
+{
+  x = x / capWidth;
+  y = y / capHeight;
+  auto dirVal = computeDirection(x, y);
+  auto accelVal = computeAcceleration(dirVal.first, dirVal.second, x, y);
+  std::cout << "X-DIR: " << dirVal.first << ", Y-DIR: " << dirVal.second << ", X-ACCEL: " << accelVal.first << ", Y-ACCEL: " << accelVal.second << std::endl;
+}
+
 void drawBox(cv::Mat &img, cv::Rect bbox)
 {
   cv::rectangle(img, bbox, cv::Scalar(255, 0, 255), 3, 1);
@@ -77,7 +136,7 @@ int main()
     }
     else if (isTrackingActive == true && isTrackerInited == true && !roi.empty())
     {
-      cv::Rect2d bbox;
+      cv::Rect bbox;
       success = tracker->update(img, bbox); // update tracker
       if (success)
       {
@@ -102,65 +161,4 @@ int main()
   }
 
   return 0;
-}
-
-
-
-
-std::pair<std::string, std::string> computeDirection(double x, double y)
-{
-  std::string xDir;
-  std::string yDir;
-
-  if (x < CENTER)
-  {
-    xDir = LEFT;
-  }
-  else if (x > CENTER)
-  {
-    xDir = RIGHT;
-  }
-  if (y < CENTER)
-  {
-    yDir = UP;
-  }
-  else if (y > CENTER)
-  {
-    yDir = DOWN;
-  }
-
-  return std::make_pair(xDir, yDir);
-}
-
-std::pair<double, double> computeAcceleration(const std::string &xDir, const std::string &yDir, double x, double y)
-{
-  double xAccel = 0.0;
-  double yAccel = 0.0;
-  if (xDir == LEFT)
-  {
-    xAccel = (CENTER - x);
-  }
-  else if (xDir == RIGHT)
-  {
-    xAccel = (x - CENTER);
-  }
-  if (yDir == UP)
-  {
-    yAccel = (CENTER - y);
-  }
-  else if (yDir == DOWN)
-  {
-    yAccel = (y - CENTER);
-  }
-
-  return std::make_pair(xAccel * 100 * 2, yAccel * 100 * 2);
-}
-
-void gimbalNavigator(double x, double y, double capWidth, double capHeight)
-{
-  x = x / capWidth;
-  y = y / capHeight;
-  auto [xDir, yDir] = computeDirection(x, y);
-  auto [xAccel, yAccel] = computeAcceleration(xDir, yDir, x, y);
-  std::cout << "X-DIR: " << xDir << ", Y-DIR: " << yDir << ", X-ACCEL: " << xAccel << ", Y-ACCEL: " << yAccel << std::endl;
 }

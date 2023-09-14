@@ -117,7 +117,7 @@ int main()
 
   while (cap.isOpened())
   {
-    int timer;
+    int64 timer;
     cv::Mat img;
     cv::Rect bbox;
     timer = cv::getTickCount();
@@ -147,8 +147,8 @@ int main()
       drawBox(img, bbox);
     }
 
-    double fps = cv::getTickFrequency() / (cv::getTickCount() - timer);
-    cv::putText(img, std::to_string(static_cast<int>(fps)), cv::Point(75, 50), cv::FONT_HERSHEY_COMPLEX, 0.7, cv::Scalar(255, 0, 0), 2);
+        double fps = cv::getTickFrequency() / (cv::getTickCount() - timer);
+        cv::putText(img, std::to_string(static_cast<int>(fps)), cv::Point(75, 50), cv::FONT_HERSHEY_COMPLEX, 0.7, cv::Scalar(255, 0, 0), 2);
 
     cv::imshow("Tracking", img);
 

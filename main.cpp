@@ -13,8 +13,8 @@ const std::string DOWN = "down";
 
 std::pair<std::string, std::string> computeDirection(double x, double y)
 {
-  std::string xDir;
-  std::string yDir;
+  std::string xDir = "";
+  std::string yDir = "";
 
   if (x < CENTER)
   {
@@ -70,7 +70,7 @@ void gimbalNavigator(double x, double y, double capWidth, double capHeight)
   std::cout << "X-DIR: " << dirVal.first << ", Y-DIR: " << dirVal.second << ", X-ACCEL: " << accelVal.first << ", Y-ACCEL: " << accelVal.second << std::endl;
 }
 
-void drawBox(cv::Mat &img, cv::Rect bbox)
+void drawBox(cv::Mat& img, cv::Rect2d bbox)
 {
   cv::rectangle(img, bbox, cv::Scalar(255, 0, 255), 3, 1);
   cv::putText(img, "Tracking", cv::Point(75, 75), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
@@ -82,10 +82,8 @@ cv::Rect2d roi;
 bool isTrackingActive = true;
 bool isRoiUpdated = false;
 bool isTrackerInited = false;
-int height = 100;
-int width = 100;
 
-void on_mouse(int event, int x, int y, int flags, void *userdata)
+void on_mouse(int event, int x, int y, int flags, void* userdata)
 {
   if (event == cv::EVENT_LBUTTONUP)
   {
@@ -119,10 +117,12 @@ int main()
 
   while (cap.isOpened())
   {
-    usleep(300000); // try to fix mouse and waitKey latency
-
+    int timer;
     cv::Mat img;
+    cv::Rect bbox;
+    timer = cv::getTickCount();
     bool success = cap.read(img);
+
     if (!success)
     {
       std::cerr << "Error: Could not read frame." << std::endl;
@@ -137,20 +137,17 @@ int main()
     }
     else if (isTrackingActive == true && isTrackerInited == true && !roi.empty())
     {
-      cv::Rect bbox;
+      
       success = tracker->update(img, bbox); // update tracker
-      if (success)
-      {
-        gimbalNavigator(bbox.x, bbox.y, capWidth, capHeight);
-      }
+      gimbalNavigator(bbox.x, bbox.y, capWidth, capHeight);
     }
 
     if (success && isTrackingActive == true && !roi.empty())
     {
-      drawBox(img, roi);
+      drawBox(img, bbox);
     }
 
-    double fps = cv::getTickFrequency() / (cv::getTickCount() - cv::getTickCount());
+    double fps = cv::getTickFrequency() / (cv::getTickCount() - timer);
     cv::putText(img, std::to_string(static_cast<int>(fps)), cv::Point(75, 50), cv::FONT_HERSHEY_COMPLEX, 0.7, cv::Scalar(255, 0, 0), 2);
 
     cv::imshow("Tracking", img);

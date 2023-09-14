@@ -76,6 +76,32 @@ void drawBox(cv::Mat &img, cv::Rect bbox)
   cv::putText(img, "Tracking", cv::Point(75, 75), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
 }
 
+cv::Ptr<cv::Tracker> tracker = cv::TrackerCSRT::create();
+
+cv::Rect2d roi;
+bool isTrackingActive = true;
+bool isRoiUpdated = false;
+bool isTrackerInited = false;
+int height = 100;
+int width = 100;
+
+void on_mouse(int event, int x, int y, int flags, void *userdata)
+{
+  if (event == cv::EVENT_LBUTTONUP)
+  {
+    if (isTrackingActive)
+    {
+      roi = cv::Rect2d(x, y, 100, 100); // width and height are fixed at 100 for now
+      isRoiUpdated = true;
+    }
+  }
+  else if (event == cv::EVENT_RBUTTONUP)
+  {
+    roi = cv::Rect2d();
+    isRoiUpdated = false;
+  }
+}
+
 int main()
 {
   cv::VideoCapture cap(0);
@@ -88,33 +114,8 @@ int main()
   double capWidth = cap.get(cv::CAP_PROP_FRAME_WIDTH);
   double capHeight = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-  cv::Ptr<cv::Tracker> tracker = cv::TrackerCSRT::create();
-
-  cv::Rect2d roi;
-  bool isTrackingActive = true;
-  bool isRoiUpdated = false;
-  bool isTrackerInited = false;
-  int height = 100;
-  int width = 100;
-
   cv::namedWindow("Tracking");
-
-  cv::setMouseCallback(
-      "Tracking", [&](int event, int x, int y, int flags, void *userdata)
-      {
-        cv::Rect2d& roi = *static_cast<cv::Rect2d*>(userdata);
-
-        if (event == cv::EVENT_LBUTTONUP) { // Left click
-            if (isTrackingActive == true) {
-                roi = cv::Rect2d(x, y, width, height);
-                isRoiUpdated = true;
-            }
-        }
-        else if (event == cv::EVENT_RBUTTONUP) { // Right click (erase current ROI)
-            roi = cv::Rect2d();
-            isRoiUpdated = false;
-        } },
-      &roi);
+  cv::setMouseCallback("Tracking", on_mouse);
 
   while (cap.isOpened())
   {
